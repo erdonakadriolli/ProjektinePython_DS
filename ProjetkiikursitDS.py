@@ -2,11 +2,9 @@ import sqlite3
 from tkinter import *
 from tkinter import messagebox
 
-# Krijimi i bazës së të dhënave
 conn = sqlite3.connect('library.db')
 cursor = conn.cursor()
 
-# Krijimi i tabelave
 cursor.execute('''
 CREATE TABLE IF NOT EXISTS Books (
     book_id INTEGER PRIMARY KEY AUTOINCREMENT,
