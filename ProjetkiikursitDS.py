@@ -1,5 +1,6 @@
 import sqlite3
 from tkinter import *
+from tkinter import messagebox
 
 # Krijimi i bazës së të dhënave
 conn = sqlite3.connect('library.db')
@@ -37,78 +38,29 @@ CREATE TABLE IF NOT EXISTS Borrowing (
 )
 ''')
 
-# Funksionet për menaxhimin e librave
 def add_book(title, author, isbn, quantity):
-    cursor.execute('''
-    INSERT INTO Books (title, author, isbn, quantity)
-    VALUES (?, ?, ?, ?)
-    ''', (title, author, isbn, quantity))
-    conn.commit()
-    print("Libri u shtua me sukses!")
+    try:
+        cursor.execute('SELECT * FROM Books WHERE isbn = ?', (isbn,))
+        if cursor.fetchone():
+            messagebox.showerror("Gabim", "ISBN ekziston tashmë!")
+        else:
+            cursor.execute('''
+            INSERT INTO Books (title, author, isbn, quantity)
+            VALUES (?, ?, ?, ?)
+            ''', (title, author, isbn, quantity))
+            conn.commit()
+            messagebox.showinfo("Sukses", "Libri u shtua me sukses!")
+            cursor.execute('SELECT * FROM Books WHERE isbn = ?', (isbn,))
+            book = cursor.fetchone()
+            print("Libri i shtuar:", book)
+    except sqlite3.IntegrityError:
+        messagebox.showerror("Gabim", "ISBN ekziston tashmë!")
 
-def update_book(book_id, title, author, isbn, quantity):
-    cursor.execute('''
-    UPDATE Books
-    SET title = ?, author = ?, isbn = ?, quantity = ?
-    WHERE book_id = ?
-    ''', (title, author, isbn, quantity, book_id))
-    conn.commit()
-    print("Libri u përditësua me sukses!")
 
-def delete_book(book_id):
-    cursor.execute('''
-    DELETE FROM Books WHERE book_id = ?
-    ''', (book_id,))
-    conn.commit()
-    print("Libri u fshi me sukses!")
-
-# Funksionet për menaxhimin e përdoruesve
-def add_user(first_name, last_name, email):
-    cursor.execute('''
-    INSERT INTO Users (first_name, last_name, email)
-    VALUES (?, ?, ?)
-    ''', (first_name, last_name, email))
-    conn.commit()
-    print("Përdoruesi u shtua me sukses!")
-
-def update_user(user_id, first_name, last_name, email):
-    cursor.execute('''
-    UPDATE Users
-    SET first_name = ?, last_name = ?, email = ?
-    WHERE user_id = ?
-    ''', (first_name, last_name, email, user_id))
-    conn.commit()
-    print("Përdoruesi u përditësua me sukses!")
-
-def delete_user(user_id):
-    cursor.execute('''
-    DELETE FROM Users WHERE user_id = ?
-    ''', (user_id,))
-    conn.commit()
-    print("Përdoruesi u fshi me sukses!")
-
-# Funksionet për menaxhimin e huazimeve
-def borrow_book(user_id, book_id, borrow_date, return_date):
-    cursor.execute('''
-    INSERT INTO Borrowing (user_id, book_id, borrow_date, return_date)
-    VALUES (?, ?, ?, ?)
-    ''', (user_id, book_id, borrow_date, return_date))
-    conn.commit()
-    print("Libri u huazua me sukses!")
-
-def return_book(borrow_id):
-    cursor.execute('''
-    DELETE FROM Borrowing WHERE borrow_id = ?
-    ''', (borrow_id,))
-    conn.commit()
-    print("Libri u kthye me sukses!")
-
-# Ndërfaqja me Tkinter
 def main():
     root = Tk()
     root.title("Sistemi i Menaxhimit të Bibliotekës")
 
-    # Shtimi i librit
     Label(root, text="Titulli").grid(row=0)
     Label(root, text="Autori").grid(row=1)
     Label(root, text="ISBN").grid(row=2)
